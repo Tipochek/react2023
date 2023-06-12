@@ -13,12 +13,17 @@ class App extends Component {
         super(props);
         this.state = {
             data: [
-                {name: 'John C.', salary: 800, increase: false, rise: true, id: 1},
-                {name: 'Alex M.', salary: 3000, increase: true, rise: false, id: 2},
-                {name: 'Carl W.', salary: 5000, increase: false, rise: false, id: 3}
-            ]
+                {name: 'John C.', salary: 600, increase: true, rise: false, id: 1},
+                {name: 'John C.', salary: 1000, increase: false, rise: true, id: 2},
+                {name: 'Alex M.', salary: 400, increase: true, rise: false, id: 3},
+                {name: 'Alex M.', salary: 3000, increase: false, rise: true, id: 4},
+                {name: 'Carl W.', salary: 800, increase: true, rise: false, id: 5},
+                {name: 'Carl W.', salary: 5000, increase: false, rise: true, id: 6}
+            ],
+            findEmployee: '',
+            defaultSort: 'all',
         }
-        this.maxId = 4;
+        this.maxId = 7;
     }
 
     deleteItem = (id) => {
@@ -29,10 +34,9 @@ class App extends Component {
         })
     }
 
-    // Да, пока могут добавляться пустые пользователи. Мы это еще исправим
     addItem = (name, salary) => {
         const newItem = {
-            name, 
+            name,
             salary,
             increase: false,
             rise: false,
@@ -57,22 +61,52 @@ class App extends Component {
         }))
     }
 
+    findEmployee = (filter, data) => {
+        if (filter === '') return data;
+
+        return data.filter(item => (item.name.indexOf(filter) > -1));
+    }
+
+    onUpdateSearchValue = (filter) => {
+        this.setState({findEmployee: filter})
+    }
+
+    dataSortByFilter = (data, filter) => {
+        switch (filter) {
+            case 'increase':
+                return data.filter(item => (item.increase));
+            case 'salary':
+                return data.filter(item => (item.salary >= 1000));
+            default:
+                return data;
+        }
+    }
+
+    onFilterChange = (param) => {
+        this.setState({
+            defaultSort: param
+        });
+    }
+
     render() {
         const employees = this.state.data.length;
         const increased = this.state.data.filter(item => item.increase).length;
+        const visibleData = this.dataSortByFilter(this.findEmployee(this.state.findEmployee, this.state.data), this.state.defaultSort);
+
         return (
             <div className="app">
                 <AppInfo employees={employees} increased={increased}/>
-    
+
                 <div className="search-panel">
-                    <SearchPanel/>
-                    <AppFilter/>
+                    <SearchPanel onUpdateSearchValue={this.onUpdateSearchValue}/>
+                    <AppFilter onFilterChange={this.onFilterChange} filterParam={this.state.defaultSort}/>
                 </div>
-                
-                <EmployeesList 
-                    data={this.state.data}
+
+                <EmployeesList
+                    data={visibleData}
                     onDelete={this.deleteItem}
-                    onToggleProp={this.onToggleProp}/>
+                    onToggleProp={this.onToggleProp}
+                    findEmployee={this.findEmployee}/>
                 <EmployeesAddForm onAdd={this.addItem}/>
             </div>
         );
